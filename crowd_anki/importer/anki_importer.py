@@ -9,24 +9,61 @@ import aqt.utils
 import yaml
 
 from ..representation import deck_initializer
-from ..utils.constants import DECK_FILE_NAME, DECK_FILE_EXTENSION, MEDIA_SUBDIRECTORY_NAME, IMPORT_CONFIG_NAME
+from ..utils.constants import (AFMT_FIELD_NAME, BACK_FILE_EXTENSION,
+                               BACK_FILE_NAME, CSS_FIELD_NAME, DECK_FILE_NAME,
+                               FRONT_FILE_EXTENSION, FRONT_FILE_NAME,
+                               IMPORT_CONFIG_NAME, INDEX_FILE_EXTENSION,
+                               MEDIA_SUBDIRECTORY_NAME, NOTE_MODEL_FILE_NAME,
+                               NOTE_MODELS_FIELD_NAME,
+                               NOTE_MODELS_SUBDIRECTORY_NAME, QFMT_FIELD_NAME,
+                               STYLE_FILE_EXTENSION, STYLE_FILE_NAME,
+                               TMPL_FILE_NAME, TMPLS_FIELD_NAME,
+                               TMPLS_SUBDIRECTORY_NAME)
 from ..importer.import_dialog import ImportDialog, ImportConfig
 from aqt.qt import QDialog
 
 
-class AnkiJsonImporter:
+class AnkiImporter:
     def __init__(self, collection, deck_file_name: str = DECK_FILE_NAME):
         self.collection = collection
         self.deck_file_name = deck_file_name
 
-    def load_deck(self, directory_path) -> bool:
+    def load_deck(self, directory_path: Path) -> bool:
         """
         Load deck serialized to directory
         Assumes that deck json file is located in the directory
-        and named 'deck.json' or '[foldername].json
+        and named 'deck.json' or '[foldername].json along with other files
         :param directory_path: Path
         """
-        deck_json = self.read_deck(self.get_deck_path(directory_path))
+        deck_path = self.get_deck_path(directory_path)
+        if not deck_path.exists():
+            raise ValueError("There is no {} file inside of the selected directory".format(deck_path))
+        deck_json = self.read_json_file(deck_path)
+
+        note_models_directory_path = directory_path.joinpath(NOTE_MODELS_SUBDIRECTORY_NAME)
+        if not note_models_directory_path.exists():
+            raise ValueError("There is no {} directory inside of the selected directory".format(note_models_directory_path))
+        note_models = []
+        for note_model_directory_path in filter(Path.is_dir, note_models_directory_path.iterdir()):
+            note_model_json = self.read_json_file(note_model_directory_path.joinpath(NOTE_MODEL_FILE_NAME).with_suffix(INDEX_FILE_EXTENSION))
+
+            note_model_json[CSS_FIELD_NAME] = self.read_text_file(note_model_directory_path.joinpath(STYLE_FILE_NAME).with_suffix(STYLE_FILE_EXTENSION))
+
+            tmpls_directory_path = note_model_directory_path.joinpath(TMPLS_SUBDIRECTORY_NAME)
+            if not tmpls_directory_path.exists():
+                raise ValueError("There is no {} directory inside of the note model directory".format(tmpls_directory_path))
+            tmpls = []
+            for tmpl_directory_path in filter(Path.is_dir, tmpls_directory_path.iterdir()):
+                tmpl_json = self.read_json_file(tmpl_directory_path.joinpath(TMPL_FILE_NAME).with_suffix(INDEX_FILE_EXTENSION))
+
+                tmpl_json[AFMT_FIELD_NAME] = self.read_text_file(tmpl_directory_path.joinpath(BACK_FILE_NAME).with_suffix(BACK_FILE_EXTENSION))
+                tmpl_json[QFMT_FIELD_NAME] = self.read_text_file(tmpl_directory_path.joinpath(FRONT_FILE_NAME).with_suffix(FRONT_FILE_EXTENSION))
+
+                tmpls.append(tmpl_json)
+            note_model_json[TMPLS_FIELD_NAME] = tmpls
+            
+            note_models.append(note_model_json)
+        deck_json[NOTE_MODELS_FIELD_NAME] = note_models
 
         import_config = self.read_import_config(directory_path, deck_json)
         if import_config is None:
@@ -64,19 +101,24 @@ class AnkiJsonImporter:
         """
 
         def path_for_name(name):
-            return directory_path.joinpath(name).with_suffix(DECK_FILE_EXTENSION)
+            return directory_path.joinpath(name).with_suffix(INDEX_FILE_EXTENSION)
 
         convention_path = path_for_name(self.deck_file_name)   # [folder]/deck.json
         inferred_path = path_for_name(directory_path.name)     # [folder]/[folder].json
         return convention_path if convention_path.exists() else inferred_path
 
     @staticmethod
-    def read_deck(file_path: Path):
-        if not file_path.exists():
-            raise ValueError("There is no {} file inside of the selected directory".format(file_path))
+    def read_json_file(file_path):
+        return AnkiImporter.read_file(file_path, lambda file: json.load(file))
 
-        with file_path.open(encoding='utf8') as deck_file:
-            return json.load(deck_file)
+    @staticmethod
+    def read_text_file(file_path):
+        return AnkiImporter.read_file(file_path, lambda file: file.read())
+
+    @staticmethod
+    def read_file(file_path: Path, extract_content):
+        with file_path.open(encoding='utf8') as file:
+            return extract_content(file)
 
     @staticmethod
     def read_import_config(directory_path, deck_json):
@@ -96,7 +138,7 @@ class AnkiJsonImporter:
 
     @staticmethod
     def import_deck_from_path(collection, directory_path):
-        importer = AnkiJsonImporter(collection)
+        importer = AnkiImporter(collection)
         try:
             if importer.load_deck(directory_path):
                 aqt.utils.showInfo("Import of {} deck was successful".format(directory_path.name))
@@ -109,4 +151,4 @@ class AnkiJsonImporter:
     def import_deck(collection, directory_provider: Callable[[str], Optional[str]]):
         directory_path = str(directory_provider("Select Deck Directory"))
         if directory_path:
-            AnkiJsonImporter.import_deck_from_path(collection, Path(directory_path))
+            AnkiImporter.import_deck_from_path(collection, Path(directory_path))

@@ -2,7 +2,7 @@ from collections import namedtuple, defaultdict
 from typing import Callable, Any, Iterable
 
 from .deck_config import DeckConfig
-from .json_serializable import JsonSerializableAnkiDict
+from .serializable import SerializableAnkiDict
 from .note_model import NoteModel
 from ..anki.adapters.file_provider import FileProvider
 from ..importer.import_dialog import ImportConfig
@@ -14,10 +14,10 @@ from ..utils.notifier import AnkiModalNotifier
 DeckMetadata = namedtuple("DeckMetadata", ["deck_configs", "models"])
 
 
-class Deck(JsonSerializableAnkiDict):
+class Deck(SerializableAnkiDict):
     DECK_NAME_DELIMITER = "::"
 
-    export_filter_set = JsonSerializableAnkiDict.export_filter_set | \
+    export_filter_set = SerializableAnkiDict.export_filter_set | \
                         {
                             "collection",  # runtime-relevant
                             "newToday",
@@ -32,7 +32,7 @@ class Deck(JsonSerializableAnkiDict):
                             "file_provider_supplier"
                         }
 
-    import_filter_set = JsonSerializableAnkiDict.import_filter_set | \
+    import_filter_set = SerializableAnkiDict.import_filter_set | \
                         {"note_models",
                          "deck_configurations",
                          "children",
@@ -97,8 +97,7 @@ class Deck(JsonSerializableAnkiDict):
         return utils.merge_dicts(
             super(Deck, self).serialization_dict(),
             {"media_files": list(sorted(self.get_media_file_list(include_children=False)))},
-            {"note_models": list(self.metadata.models.values()),
-             "deck_configurations": list(self.metadata.deck_configs.values())} if not self.is_child else {})
+            {"deck_configurations": list(self.metadata.deck_configs.values())} if not self.is_child else {})
 
     def get_media_file_list(self, data_from_models=True, include_children=True):
         media = set()

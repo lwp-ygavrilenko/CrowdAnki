@@ -1,7 +1,7 @@
 import anki
 import anki.utils
 from anki.notes import Note as AnkiNote
-from .json_serializable import JsonSerializableAnkiObject
+from .serializable import SerializableAnkiObject
 from .note_model import NoteModel
 from ..anki.overrides.change_model_dialog import ChangeModelDialog
 from ..importer.import_dialog import ImportConfig
@@ -10,8 +10,8 @@ from ..utils.constants import UUID_FIELD_NAME
 from ..utils.uuid import UuidFetcher
 
 
-class Note(JsonSerializableAnkiObject):
-    export_filter_set = JsonSerializableAnkiObject.export_filter_set | \
+class Note(SerializableAnkiObject):
+    export_filter_set = SerializableAnkiObject.export_filter_set | \
                         {"col",  # Don't need collection
                          "_fmap",  # Generated data
                          "_model",  # Card model. Would be handled by deck.

@@ -3,7 +3,7 @@ from dulwich import porcelain
 from dulwich.errors import NotGitRepository, GitProtocolError
 
 from ..config.config_settings import ConfigSettings
-from ..importer.anki_importer import AnkiJsonImporter
+from ..importer.anki_importer import AnkiImporter
 from ..utils.notifier import AnkiModalNotifier
 
 BRANCH_NAME = "master"
@@ -45,7 +45,7 @@ class GitImporter(object):
             except (GitProtocolError, NotGitRepository):
                 return self.notifier.error("repository not found", f"git repository not found at URL {repo_url}")
 
-        AnkiJsonImporter.import_deck_from_path(self.collection, repo_local_path)
+        AnkiImporter.import_deck_from_path(self.collection, repo_local_path)
 
     def clone_repository(self, repo_url, repo_path):
         repo_path.mkdir(parents=True, exist_ok=True)

@@ -21,10 +21,10 @@ with describe(GitImporter) as self:
         with it("should clone the git repo without crashing"):
             self.collection_mock = MagicMock()
             self.subject = GitImporter(self.collection_mock)
-            with patch("crowd_anki.github.github_importer.AnkiJsonImporter") as mock_json_importer:
+            with patch("crowd_anki.github.github_importer.AnkiImporter") as mock_importer:
                 for _ in range(0, CLONE_REPETITIONS):
                     self.subject.clone_repository_and_import(TEST_GIT_REPO)
-                expect(mock_json_importer.import_deck_from_path.call_count).to(equal(3))
+                expect(mock_importer.import_deck_from_path.call_count).to(equal(3))
 
             # Note: the import itself isn't being tested (we're not,
             # yet (as of 2021-11) testing import itself in any
