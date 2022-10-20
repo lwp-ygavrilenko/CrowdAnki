@@ -28,12 +28,13 @@ class AnkiImporter:
         self.collection = collection
         self.deck_file_name = deck_file_name
 
-    def load_deck(self, directory_path: Path) -> bool:
+    def load_deck(self, directory_path: Path, auto: bool) -> bool:
         """
         Load deck serialized to directory
         Assumes that deck json file is located in the directory
         and named 'deck.json' or '[foldername].json along with other files
         :param directory_path: Path
+        :param auto: bool
         """
         deck_path = self.get_deck_path(directory_path)
         if not deck_path.exists():
@@ -65,7 +66,7 @@ class AnkiImporter:
             note_models.append(note_model_json)
         deck_json[NOTE_MODELS_FIELD_NAME] = note_models
 
-        import_config = self.read_import_config(directory_path, deck_json)
+        import_config = self.read_import_config(directory_path, deck_json, auto)
         if import_config is None:
             return False
 
@@ -121,7 +122,7 @@ class AnkiImporter:
             return extract_content(file)
 
     @staticmethod
-    def read_import_config(directory_path, deck_json):
+    def read_import_config(directory_path, deck_json, auto: bool):
         file_path = directory_path.joinpath(IMPORT_CONFIG_NAME)
 
         if not file_path.exists():
@@ -131,16 +132,16 @@ class AnkiImporter:
                 import_dict = yaml.full_load(meta_file)
 
         import_dialog = ImportDialog(deck_json, import_dict)
-        if import_dialog.exec_() == QDialog.Rejected:
+        if not auto and import_dialog.exec_() == QDialog.Rejected:
             return None
 
         return import_dialog.final_import_config
 
     @staticmethod
-    def import_deck_from_path(collection, directory_path):
+    def import_deck_from_path(collection, directory_path, auto=False):
         importer = AnkiImporter(collection)
         try:
-            if importer.load_deck(directory_path):
+            if importer.load_deck(directory_path, auto):
                 aqt.utils.showInfo("Import of {} deck was successful".format(directory_path.name))
         except ValueError as error:
             aqt.utils.showWarning("Error: {}. While trying to import deck from directory {}".format(
