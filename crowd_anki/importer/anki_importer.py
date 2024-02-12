@@ -23,7 +23,7 @@ from ..importer.import_dialog import ImportDialog, ImportConfig
 from aqt.qt import QDialog
 
 
-class AnkiImporter:
+class AnkiJsonImporter:
     def __init__(self, collection, deck_file_name: str = DECK_FILE_NAME):
         self.collection = collection
         self.deck_file_name = deck_file_name
@@ -109,11 +109,11 @@ class AnkiImporter:
 
     @staticmethod
     def read_json_file(file_path):
-        return AnkiImporter.read_file(file_path, lambda file: json.load(file))
+        return AnkiJsonImporter.read_file(file_path, lambda file: json.load(file))
 
     @staticmethod
     def read_text_file(file_path):
-        return AnkiImporter.read_file(file_path, lambda file: file.read())
+        return AnkiJsonImporter.read_file(file_path, lambda file: file.read())
 
     @staticmethod
     def read_file(file_path: Path, extract_content):
@@ -138,7 +138,7 @@ class AnkiImporter:
 
     @staticmethod
     def import_deck_from_path(collection, directory_path):
-        importer = AnkiImporter(collection)
+        importer = AnkiJsonImporter(collection)
         try:
             if importer.load_deck(directory_path):
                 aqt.utils.showInfo("Import of {} deck was successful".format(directory_path.name))
@@ -151,4 +151,4 @@ class AnkiImporter:
     def import_deck(collection, directory_provider: Callable[[str], Optional[str]]):
         directory_path = str(directory_provider("Select Deck Directory"))
         if directory_path:
-            AnkiImporter.import_deck_from_path(collection, Path(directory_path))
+            AnkiJsonImporter.import_deck_from_path(collection, Path(directory_path))

@@ -1,9 +1,9 @@
 from anki import Collection
-from .serializable import SerializableAnkiDict
+from .json_serializable import JsonSerializableAnkiDict
 from ..utils.uuid import UuidFetcher
 
 
-class DeckConfig(SerializableAnkiDict):
+class DeckConfig(JsonSerializableAnkiDict):
     def __init__(self, anki_deck_config=None):
         super(DeckConfig, self).__init__(anki_deck_config)
 

@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from anki.collection import Collection
     from anki.decks import DeckId
 
-from .anki_exporter import AnkiExporter
+from .anki_exporter import AnkiJsonExporter
 from ..anki.adapters.anki_deck import AnkiDeck
 from ..config.config_settings import ConfigSettings
 from ..utils import constants
@@ -25,9 +25,9 @@ from ..utils.disambiguate_uuids import disambiguate_note_model_uuids
 from ..errors import UnexportableDeckException
 
 EXPORT_FAILED_TITLE = "Export failed"
-EXPORT_KEY = "CrowdAnki representation" # TODO make this localisable, like in Anki (tr.(...))
+EXPORT_KEY = "CrowdAnki JSON representation" # TODO make this localisable, like in Anki (tr.(...))
 
-class AnkiExporterWrapper:
+class AnkiJsonExporterWrapper:
     """
     Wrapper designed to work with standard export dialog in anki.
 
@@ -43,13 +43,13 @@ class AnkiExporterWrapper:
 
     def __init__(self, collection,
                  deck_id: int = None,
-                 json_exporter: AnkiExporter = None,
+                 json_exporter: AnkiJsonExporter = None,
                  notifier: Notifier = None):
         self.includeMedia = True
         self.did = deck_id
         self.count = 0
         self.collection = collection
-        self.anki_json_exporter = json_exporter or AnkiExporter(collection, ConfigSettings.get_instance())
+        self.anki_json_exporter = json_exporter or AnkiJsonExporter(collection, ConfigSettings.get_instance())
         self.notifier = notifier or AnkiModalNotifier()
 
     # required by anki exporting interface with its non-PEP-8 names
@@ -69,7 +69,7 @@ def get_exporter_id(exporter):
 
 
 def exporters_hook(exporters_list):
-    exporter_id = get_exporter_id(AnkiExporterWrapper)
+    exporter_id = get_exporter_id(AnkiJsonExporterWrapper)
     if exporter_id not in exporters_list:
         exporters_list.append(exporter_id)
 
@@ -86,7 +86,7 @@ class AnkiJsonExporterWrapperNew(Exporter):
 
     def export(self, mw: aqt.main.AnkiQt,
                options, #: ExportOptions,
-               anki_json_exporter: AnkiExporter = None,
+               anki_json_exporter: AnkiJsonExporter = None,
                notifier: Notifier = None) -> None:
 
         def on_success(count: int) -> None:
@@ -105,7 +105,7 @@ class AnkiJsonExporterWrapperNew(Exporter):
             deck_id = options.limit.deck_id
 
         if anki_json_exporter is None:
-            anki_json_exporter = AnkiExporter(mw.col, ConfigSettings.get_instance())
+            anki_json_exporter = AnkiJsonExporter(mw.col, ConfigSettings.get_instance())
         if notifier is None:
             notifier = AnkiModalNotifier()
 
@@ -144,7 +144,7 @@ class AnkiJsonExporterWrapperNew(Exporter):
                             collection: Collection,
                             deck: AnkiDeck,
                             include_media: bool,
-                            anki_json_exporter: AnkiExporter) -> int:
+                            anki_json_exporter: AnkiJsonExporter) -> int:
         """Clean up and do the actual export.
 
         Also, return the exported note count, for instance, for

@@ -9,7 +9,7 @@ from typing import Callable
 from .deck_exporter import DeckExporter
 from ..anki.adapters.anki_deck import AnkiDeck
 from ..representation import deck_initializer
-from ..representation.serializable import Serializable
+from ..representation.json_serializable import JsonSerializable
 from ..utils.constants import (AFMT_FIELD_NAME, BACK_FILE_EXTENSION,
                                BACK_FILE_NAME, CSS_FIELD_NAME, DECK_FILE_NAME,
                                FRONT_FILE_EXTENSION, FRONT_FILE_NAME,
@@ -24,7 +24,7 @@ from .note_sorter import NoteSorter
 from ..config.config_settings import ConfigSettings
 
 
-class AnkiExporter(DeckExporter):
+class AnkiJsonExporter(DeckExporter):
     def __init__(self, collection,
                  config: ConfigSettings,
                  name_sanitizer: Callable[[str], str] = sanitize_anki_name,
@@ -39,7 +39,7 @@ class AnkiExporter(DeckExporter):
     def export_to_directory(self, deck: AnkiDeck, output_dir=Path("."), copy_media=True, create_deck_subdirectory=True) -> Path:
         deck_directory = output_dir
         if create_deck_subdirectory:
-            deck_directory= self._make_directory(output_dir, self.name_sanitizer(deck.name))
+            deck_directory = self._make_directory(output_dir, self.name_sanitizer(deck.name))
 
         deck = deck_initializer.from_collection(self.collection, deck.name)
 
@@ -82,7 +82,7 @@ class AnkiExporter(DeckExporter):
 
     def _write_index_file(self, directory: Path, name, object):
         content = json.dumps(object,
-                             default=Serializable.default_json,
+                             default=JsonSerializable.default_json,
                              sort_keys=True,
                              indent=4,
                              ensure_ascii=False)

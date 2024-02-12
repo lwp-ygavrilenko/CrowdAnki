@@ -8,7 +8,7 @@ from .dulwich_repo import DulwichAnkiRepo
 from ..anki.adapters.deck_manager import AnkiStaticDeckManager, DeckManager
 from ..anki.ui.utils import progress_indicator
 from ..config.config_settings import ConfigSettings
-from ..export.anki_exporter import AnkiExporter
+from ..export.anki_exporter import AnkiJsonExporter
 from ..utils.notifier import Notifier, AnkiTooltipNotifier
 from ..utils.disambiguate_uuids import disambiguate_note_model_uuids
 
@@ -28,7 +28,7 @@ class ArchiverVendor:
             self.deck_manager,
             lambda deck: AnkiDeckArchiver(deck,
                                           self.config.full_snapshot_path,
-                                          AnkiExporter(self.window.col, self.config),
+                                          AnkiJsonExporter(self.window.col, self.config),
                                           DulwichAnkiRepo))
 
     def snapshot_path(self):

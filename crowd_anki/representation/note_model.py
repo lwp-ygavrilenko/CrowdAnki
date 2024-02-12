@@ -1,15 +1,15 @@
 from collections import namedtuple
 
 from anki import Collection
-from .serializable import SerializableAnkiDict
+from .json_serializable import JsonSerializableAnkiDict
 from ..anki.overrides.change_model_dialog import ChangeModelDialog
 from ..utils import utils
 from ..utils.uuid import UuidFetcher
 
 
-class NoteModel(SerializableAnkiDict):
+class NoteModel(JsonSerializableAnkiDict):
     ModelMap = namedtuple("ModelMap", ["field_map", "template_map"])
-    export_filter_set = SerializableAnkiDict.export_filter_set | \
+    export_filter_set = JsonSerializableAnkiDict.export_filter_set | \
                         {"did",  # uuid
                          "css", "tmpls"}
 

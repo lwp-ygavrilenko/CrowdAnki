@@ -4,7 +4,7 @@ from aqt import mw
 
 from ...github.github_importer import GitImporter
 from ...history.archiver_vendor import ArchiverVendor
-from ...importer.anki_importer import AnkiImporter
+from ...importer.anki_importer import AnkiJsonImporter
 from ...config.config_settings import ConfigSettings
 
 
@@ -29,7 +29,7 @@ class ActionVendor:
 
     def import_action(self):
         return self.action('CrowdAnki: Import from disk',
-                           lambda: AnkiImporter.import_deck(self.window.col, self.directory_vendor))
+                           lambda: AnkiJsonImporter.import_deck(self.window.col, self.directory_vendor))
 
     def github_import(self):
         return self.action("CrowdAnki: Import git repository",

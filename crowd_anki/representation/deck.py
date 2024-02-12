@@ -2,7 +2,7 @@ from collections import namedtuple, defaultdict
 from typing import Callable, Any, Iterable
 
 from .deck_config import DeckConfig
-from .serializable import SerializableAnkiDict
+from .json_serializable import JsonSerializableAnkiDict
 from .note_model import NoteModel
 from ..anki.adapters.file_provider import FileProvider
 from ..importer.import_dialog import ImportConfig
@@ -14,10 +14,10 @@ from ..utils.notifier import AnkiModalNotifier
 DeckMetadata = namedtuple("DeckMetadata", ["deck_configs", "models"])
 
 
-class Deck(SerializableAnkiDict):
+class Deck(JsonSerializableAnkiDict):
     DECK_NAME_DELIMITER = "::"
 
-    export_filter_set = SerializableAnkiDict.export_filter_set | \
+    export_filter_set = JsonSerializableAnkiDict.export_filter_set | \
                         {
                             "collection",  # runtime-relevant
                             "newToday",
@@ -32,7 +32,7 @@ class Deck(SerializableAnkiDict):
                             "file_provider_supplier"
                         }
 
-    import_filter_set = SerializableAnkiDict.import_filter_set | \
+    import_filter_set = JsonSerializableAnkiDict.import_filter_set | \
                         {"note_models",
                          "deck_configurations",
                          "children",
